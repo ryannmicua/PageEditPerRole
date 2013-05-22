@@ -10,6 +10,8 @@ edit access to assigned pages. Otherwise, they will only gain view access.
 This module is fully functional as-is, but intended as a proof-of-concept for those 
 wanting to go further with adding custom edit and/or view access.
 
+NOTE: Original idea is from PageEditPerRole module by Ryan Cramer, http://processwire.com
+
 ### How to install
 
 1. Copy the PageEditPerRole.module file to /site/modules/
