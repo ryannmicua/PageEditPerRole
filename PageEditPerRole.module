@@ -293,7 +293,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$field_templates->type = wire('modules')->get('FieldtypeText');
 		$field_templates->inputfield = 'InputfieldPageName';
 		$field_templates->sanitizeMethod = 'pageName';
-		$field_templates->description = 'Select the templates that users with this role can use when adding child pages.';
+		$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to.';
 		$field_templates->save();
 		$this->message("Added field 'role_permitted_templates' to the role template.");
 
