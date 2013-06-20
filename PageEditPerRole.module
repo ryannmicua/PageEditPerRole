@@ -106,6 +106,39 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		return $page_on_my_branch;
 	}
 
+
+	protected function canAdd($page){
+		$user = $this->user;
+
+		//get the roles user has
+		$user_roles = $user->roles;
+
+		$can_add = false;
+
+		foreach($user_roles as $role){
+			if(count($role->role_add_children_pages)){
+
+				$can_create = $role->role_add_children_pages->has($page);
+				
+				//scan ancestors if applicable
+				if($this->scan_ancestors && !$can_create){
+					$parents = $page->parents;
+					while(!$can_create && count($parents)){
+						$p = $parents->pop();
+						$can_create = $role->role_add_children_pages->has($p);
+					}
+				}
+
+				if($can_create){
+					//can add pages, return!
+					return $can_create;
+				}
+			}
+		}
+
+		return $can_add;
+	}
+
 	/**
 	 * Page::editable hook
 	 *
@@ -139,37 +172,6 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 
 	}
 
-	protected function canAdd($page){
-		$user = $this->user;
-
-		//get the roles user has
-		$user_roles = $user->roles;
-
-		$can_add = false;
-
-		foreach($user_roles as $role){
-			if(count($role->role_add_children_pages)){
-
-				$can_create = $role->role_add_children_pages->has($page);
-				
-				//scan ancestors if applicable
-				if($this->scan_ancestors && !$can_create){
-					$parents = $page->parents;
-					while(!$can_create && count($parents)){
-						$p = $parents->pop();
-						$can_create = $role->role_add_children_pages->has($p);
-					}
-				}
-
-				if($can_create){
-					//can add pages, return!
-					return $can_create;
-				}
-			}
-		}
-
-		return $can_add;
-	}
 
 	/**
 	 * User::hasPagePermission hook
@@ -293,7 +295,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$field_templates->type = wire('modules')->get('FieldtypeText');
 		$field_templates->inputfield = 'InputfieldPageName';
 		$field_templates->sanitizeMethod = 'pageName';
-		$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to.';
+		$field_templates->description = 'Specify the names of the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to. Use comma to separate multiple template names.';
 		$field_templates->save();
 		$this->message("Added field 'role_permitted_templates' to the role template.");
 
