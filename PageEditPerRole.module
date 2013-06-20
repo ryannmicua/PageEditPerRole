@@ -106,7 +106,9 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		return $page_on_my_branch;
 	}
 
-
+	/**
+	 * Check if this page, or ancestors are addable
+	 */
 	protected function canAdd($page){
 		$user = $this->user;
 
@@ -138,6 +140,8 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 
 		return $can_add;
 	}
+
+
 
 	/**
 	 * Page::editable hook
