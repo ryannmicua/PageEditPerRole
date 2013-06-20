@@ -43,6 +43,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$this->addHookAfter('Page::editable', $this, 'hookPageEditable'); 
 		$this->addHookAfter('Page::viewable', $this, 'hookPageEditable'); 
 		$this->addHookAfter('Page::addable', $this, 'hookPageAddable');
+		$this->addHookAfter('Page::editable', $this, 'hookPageEditableOnAddable');
 
 		//$this->addHookAfter('User::hasPagePermission', $this, 'hookHasPagePermission');
 		$this->addHookAfter('ProcessPageAdd::getAllowedTemplates', $this, 'hookGetAllowedTemplates');
@@ -141,6 +142,47 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		return $can_add;
 	}
 
+	/**
+	 * Check if page is editable by checking if the page was created by user
+	 * by the same user and the page is a child whose parent is in the
+	 * role_add_children_pages field (assuming user has role that has this field)
+	 */
+	public function hookPageEditableOnAddable($event){
+		if($event->true) return;
+
+		$page = $event->object;
+
+		$user = $this->user;
+		$user_roles = $user->roles;
+
+		$can_create = false;
+		foreach($user_roles as $role){
+			if(count($role->role_add_children_pages)){
+
+				//scan parents if any are addable
+				$parents = $page->parents;
+				while(!$can_create && count($parents)){
+					$p = $parents->pop();
+					$can_create = $role->role_add_children_pages->has($p);
+				}
+
+				if($can_create){
+					//can add pages, stop!
+					break;
+				}
+			}
+		}
+
+		//stop if no parents are addable - means user can't edit pages here
+		//even if they created it.
+		if(!$can_create) return;
+
+		//allow edit only on pages user has created
+		if( $page->created_users_id == $user->id ){
+            $event->return = true;
+      }
+
+	}
 
 
 	/**
