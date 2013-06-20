@@ -331,7 +331,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 			'In order to add to child pages, this role must have page-edit permission or the user must also have another role with page-edit permission.';
 		$field_addable->save();
 
-		$this->message("Added field 'role_addable_pages' to the role template.");
+		$this->message("Added field 'role_add_children_pages' to the role template.");
 
 		//add role_permitted_templates
 		$field_templates = new Field();
