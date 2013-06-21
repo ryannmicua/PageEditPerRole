@@ -148,7 +148,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	 * role_add_children_pages field (assuming user has role that has this field)
 	 */
 	public function hookPageEditableOnAddable($event){
-		if($event->true) return;
+		if($event->return) return;
 
 		$page = $event->object;
 
