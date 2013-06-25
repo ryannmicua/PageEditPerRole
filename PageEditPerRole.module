@@ -26,7 +26,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		return array(
 			'title' => 'Page Edit Per Role', 
 			'version' => 1, 
-			'summary' => 'Assign edit access to users in a role on a per-page or per-branch basis.',
+			'summary' => 'Assign edit/add access to users in a role on a per-branch basis.',
 			'singular' => true, 
 			'autoload' => true,
 			'requires' => 'FieldtypeTemplates'
@@ -367,7 +367,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$field_templates->labelFieldName = 'name';
 		$field_templates->type = wire('modules')->get('FieldtypeTemplates');
 		//$field_templates->inputfield = 'InputfieldPageName';
-		$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to.';
+		$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to. NOTE: Templates specified here may not actually show up when adding a new page family settings on the templates.';
 		$field_templates->save();
 		$this->message("Added field 'role_permitted_templates' to the role template.");
 
