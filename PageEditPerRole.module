@@ -28,7 +28,8 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 			'version' => 1, 
 			'summary' => 'Assign edit access to users in a role on a per-page or per-branch basis.',
 			'singular' => true, 
-			'autoload' => true, 
+			'autoload' => true,
+			'requires' => 'FieldtypeTemplates'
 			);
 	}
 
@@ -38,7 +39,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	 */
 	public function init() {
 		$this->addHookBefore('ProcessPageAdd::execute', $this, 'hookProcessPageAddExecute');
-		$this->addHookBefore('Fieldtype::savePageField', $this, 'hookSavePageField');
+		//$this->addHookBefore('Fieldtype::savePageField', $this, 'hookSavePageField');
 
 		$this->addHookAfter('Page::editable', $this, 'hookPageEditable'); 
 		$this->addHookAfter('Page::viewable', $this, 'hookPageEditable'); 
@@ -257,13 +258,22 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$allowed_templates = $event->return;
 		$user = $this->user;
 
+		//get the parent. TODO: can be improved by getting parent from $event?
+		if(isset($_POST['parent_id'])) {
+			$parent_id = (int) $_POST['parent_id']; 
+		} else {
+			$parent_id = isset($_GET['parent_id']) ? (int) $_GET['parent_id'] : 1; 
+		}
+
+		$parent = $this->pages->get($parent_id); 
+		if(!$parent) throw new Wire404Exception("The parent page could not be loaded ({$parent_id})");
+
 		//get all templates user is allowed to use
 		$permitted = array();
 		foreach($user->roles as $role){
 			if(!count($role->role_permitted_templates)) continue;
 
-			$current_permitted = array();
-			$current_permitted = explode(',', $role->role_permitted_templates);
+			$current_permitted = $role->role_permitted_templates;
 			foreach($current_permitted as $c){
 				if(in_array($c, $permitted)) continue;
 				$permitted[] = $c;
@@ -273,7 +283,24 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		//now add additional templates into the allowedTemplates array
 		foreach($this->templates as $t){
 
-			if(!in_array($t->name, $permitted)) continue;
+			if(!in_array($t->id, $permitted)) continue;
+
+			/** The ff. checks are from ProcessPageAdd::getAllowedTemplates() **/
+			if($t->noParents) continue; 
+
+			if(count($parent->template->childTemplates)) {
+				if(!in_array($t->id, $parent->template->childTemplates)) continue; 
+			} 
+
+			if(count($t->parentTemplates)) {
+				if(!in_array($parent->template->id, $t->parentTemplates)) continue; 
+			}
+
+			if($t->flags & Template::flagSystem) { 
+				if($t->name == 'user' && $parent->id != $this->config->usersPageID) continue; 
+				if($t->name == 'role' && $parent->id != $this->config->rolesPageID) continue; 
+				if($t->name == 'permission' && $parent->id != $this->config->permissionsPageID) continue; 
+			}
 
 			$allowed_templates[$t->id] = $t;
 		}
@@ -337,11 +364,10 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$field_templates = new Field();
 		$field_templates->name = 'role_permitted_templates';
 		$field_templates->label = 'Templates users with this role may use on pages they can add to';
-		$field_templates->labelFieldName = 'template-name';
-		$field_templates->type = wire('modules')->get('FieldtypeText');
-		$field_templates->inputfield = 'InputfieldPageName';
-		$field_templates->sanitizeMethod = 'pageName';
-		$field_templates->description = 'Specify the names of the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to. Use comma to separate multiple template names.';
+		$field_templates->labelFieldName = 'name';
+		$field_templates->type = wire('modules')->get('FieldtypeTemplates');
+		//$field_templates->inputfield = 'InputfieldPageName';
+		$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to.';
 		$field_templates->save();
 		$this->message("Added field 'role_permitted_templates' to the role template.");
 
