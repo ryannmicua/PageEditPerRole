@@ -44,6 +44,8 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$this->addHookAfter('Page::editable', $this, 'hookPageEditable'); 
 		$this->addHookAfter('Page::viewable', $this, 'hookPageEditable'); 
 		$this->addHookAfter('Page::publishable', $this, 'hookPagePublishable');
+		$this->addHookAfter('Page::moveable', $this, 'hookPageMoveable');
+		$this->addHookAfter('Page::sortable', $this, 'hookPageSortable');
 		$this->addHookAfter('Page::addable', $this, 'hookPageAddable');
 		$this->addHookAfter('Page::editable', $this, 'hookPageEditableOnAddable');
 
@@ -234,6 +236,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 
 	}
 
+
 	/**
 	 * Page::viewable hook
 	 *
@@ -241,6 +244,55 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	public function hookPageViewable($event) {
 		if($event->return) return;
 		$event->return = $this->onMyBranch($event->object);
+	}
+
+
+	/**
+	 * Page::moveable hook
+	 */
+	public function hookPageMoveable($event){
+		if($event->return) return;
+
+		$user = $this->user;
+		$page = $event->object;
+
+		//check if editable based on module
+		$editable = $this->onMyBranch($page);
+
+		if(!$editable){
+			return;
+		}
+
+		//check if user has the permission assigned.
+		if($user->hasPermission('page-move')){
+			$event->return = true;
+			return;
+		}
+	}
+
+
+	/**
+	 * Page::sortable hook
+	 */
+	public function hookPageSortable($event){
+		if($event->return) return;
+
+		$user = $this->user;
+		$page = $event->object;
+
+		//check if editable based on module
+		$editable = $this->onMyBranch($page);
+
+		if(!$editable){
+			return;
+		}
+
+		//check if user has the permission assigned.
+		if($user->hasPermission('page-sort')){
+			$event->return = true;
+			return;
+		}
+
 	}
 
 
