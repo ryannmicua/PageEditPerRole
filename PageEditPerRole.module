@@ -46,6 +46,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 		$this->addHookAfter('Page::publishable', $this, 'hookPagePublishable');
 		$this->addHookAfter('Page::moveable', $this, 'hookPageMoveable');
 		$this->addHookAfter('Page::sortable', $this, 'hookPageSortable');
+		$this->addHookAfter('Page::deleteable', $this, 'hookPageDeleteable');
 		$this->addHookAfter('Page::addable', $this, 'hookPageAddable');
 		$this->addHookAfter('Page::editable', $this, 'hookPageEditableOnAddable');
 
@@ -314,6 +315,29 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 
 	}
 
+
+	/**
+	 * Page::deleteable hook
+	 */
+	public function hookPageDeleteable($event){
+		if($event->return) return;
+
+		$user = $this->user;
+		$page = $event->object;
+
+		//check if editable based on module
+		$editable = $this->onMyBranch($page);
+
+		if(!$editable){
+			return;
+		}
+
+		//check if user has the permission assigned.
+		if($user->hasPermission('page-delete')){
+			$event->return = true;
+			return;
+		}
+	}
 
 	/**
 	 * User::hasPagePermission hook
