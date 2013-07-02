@@ -144,6 +144,8 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	}
 
 	/**
+	 * Allow user edit privileges on pages they created.
+	 * 
 	 * Check if page is editable by checking if the page was created by user
 	 * by the same user and the page is a child whose parent is in the
 	 * role_add_children_pages field (assuming user has role that has this field)
