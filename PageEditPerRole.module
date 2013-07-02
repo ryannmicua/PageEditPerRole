@@ -75,7 +75,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 
 			$editable_pages = $role->role_editable_pages;
 
-			if($editable_pages->count()){
+			if(count($editable_pages)){
 
 				$page_on_my_branch = $editable_pages->has($page);
 
@@ -428,50 +428,61 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	 */
 	public function ___install() {
 		//*
+		
+		$fieldgroup = $this->fieldgroups->get('role');
+		
 		//add role_editable_pages
-		$field_editable = new Field(); 
-		$field_editable->name = 'role_editable_pages';
-		$field_editable->label = 'Pages users with this role may edit';
-		$field_editable->labelFieldName = 'path';
-		$field_editable->type = wire('modules')->get('FieldtypePage'); 
-		$field_editable->inputfield = 'InputfieldPageListSelectMultiple';
-		$field_editable->description = 
-			'In order to edit pages, this role must have page-edit permission or the user must also have another role with page-edit permission. ' . 
-			'If they do not have page-edit permission, they will only be able to view the selected pages.';
-		$field_editable->save();
+		if(!$this->fields->get('role_editable_pages')){
+			$field_editable = new Field(); 
+			$field_editable->name = 'role_editable_pages';
+			$field_editable->label = 'Pages users with this role may edit';
+			$field_editable->labelFieldName = 'path';
+			$field_editable->type = wire('modules')->get('FieldtypePage'); 
+			$field_editable->inputfield = 'InputfieldPageListSelectMultiple';
+			$field_editable->description = 
+				'In order to edit pages, this role must have page-edit permission or the user must also have another role with page-edit permission. ' . 
+				'If they do not have page-edit permission, they will only be able to view the selected pages.';
+			$field_editable->save();
+			$fieldgroup->add($field_editable);
 
-		$this->message("Added field 'role_editable_pages' to the role template.");
+			$this->message("Added field 'role_editable_pages' to the role template.");
+		}
 
 		//add role_add_children_pages
-		$field_addable = new Field();
-		$field_addable->name = 'role_add_children_pages';
-		$field_addable->label = 'Pages users with this role may add to';
-		$field_addable->labelFieldName = 'path';
-		$field_addable->type = wire('modules')->get('FieldtypePage'); 
-		$field_addable->inputfield = 'InputfieldPageListSelectMultiple';
-		$field_addable->description =
-			'In order to add to child pages, this role must have page-edit permission or the user must also have another role with page-edit permission.';
-		$field_addable->save();
+		if(!$this->fields->get('role_add_children_pages')){
+			$field_addable = new Field();
+			$field_addable->name = 'role_add_children_pages';
+			$field_addable->label = 'Pages users with this role may add to';
+			$field_addable->labelFieldName = 'path';
+			$field_addable->type = wire('modules')->get('FieldtypePage'); 
+			$field_addable->inputfield = 'InputfieldPageListSelectMultiple';
+			$field_addable->description =
+				'In order to add to child pages, this role must have page-edit permission or the user must also have another role with page-edit permission.';
+			$field_addable->save();
+			$fieldgroup->add($field_addable);
 
-		$this->message("Added field 'role_add_children_pages' to the role template.");
+			$this->message("Added field 'role_add_children_pages' to the role template.");
+		}
 
 		//add role_permitted_templates
-		$field_templates = new Field();
-		$field_templates->name = 'role_permitted_templates';
-		$field_templates->label = 'Templates users with this role may use on pages they can add to';
-		$field_templates->labelFieldName = 'name';
-		$field_templates->type = wire('modules')->get('FieldtypeTemplates');
-		//$field_templates->inputfield = 'InputfieldPageName';
-		$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to. NOTE: Templates specified here may not actually show up when adding a new page family settings on the templates.';
-		$field_templates->save();
-		$this->message("Added field 'role_permitted_templates' to the role template.");
+		if(!$this->fields->get('role_permitted_templates')){
+			$field_templates = new Field();
+			$field_templates->name = 'role_permitted_templates';
+			$field_templates->label = 'Templates users with this role may use on pages they can add to';
+			$field_templates->labelFieldName = 'name';
+			$field_templates->type = wire('modules')->get('FieldtypeTemplates');
+			//$field_templates->inputfield = 'InputfieldPageName';
+			$field_templates->description = 'Select the templates that users with this role can use when adding child pages to parent pages they have permission to add pages to. NOTE: Templates specified here may not actually show up when adding a new page family settings on the templates.';
+			$field_templates->save();
+			$fieldgroup->add($field_templates);
+
+			$this->message("Added field 'role_permitted_templates' to the role template.");
+		}
 
 		//now save to fieldgroup
-		$fieldgroup = $this->fieldgroups->get('role');
-		$fieldgroup->add($field_editable);
-		$fieldgroup->add($field_addable);
-		$fieldgroup->add($field_templates);
+		
 		$fieldgroup->save();
+		
 		//*/
 	}
 
@@ -480,6 +491,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	 *
 	 */
 	public function ___uninstall() {
+		//*
 		$field_names = array(
 			'role_editable_pages',
 			'role_add_children_pages',
@@ -502,6 +514,7 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 
 			}
 		}
+		//*/
 
 	}
 
