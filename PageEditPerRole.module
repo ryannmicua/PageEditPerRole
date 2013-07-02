@@ -215,6 +215,12 @@ class PageEditPerRole extends WireData implements Module, ConfigurableModule {
 	public function hookPageAddable($event){
 		if($event->return) return;
 
+		$page = $event->object;
+
+		if($page->template->noChildren){
+			return;
+		}
+		
 		if($this->user->hasPermission('page-edit')){
 			$event->return = $this->canAdd($event->object);
 		}
